@@ -1,0 +1,101 @@
+<script>
+    //TO add data
+    $("#btnsave").click(function(){
+        console.log("Save Button Clicked");
+        output="";
+        let id=$("#playerid").val();
+        let fnm=$("#firstnameid").val();
+        let mnm=$("#middlenameid").val();
+        let lnm=$("#lastnameid").val();
+        let con=$("#countryid").val();
+        let club=$("#clubid").val();
+        let csrf=$("input[name=csrfmiddlewaretoken]").val();
+        console.log(fnm);
+        console.log(mnm);
+        console.log(lnm);
+        console.log(con);
+        console.log(club);
+        mydata={'playerid':id,'first_name':fnm,'middle_name':mnm,'last_name':lnm,'country':con,'club':club,'csrfmiddlewaretoken':csrf};
+        $.ajax({
+            url:"{% url 'save' %}",
+            method: "POST",
+            data: mydata,
+            success:function(data){
+                if (data.status == "Save"){
+                    console.log("Data Saved Sucessfully")
+<!--                    console.log(data.player_data)-->
+                    player=data.player_data
+                    for (i=0; i<player.length; i++){
+                        output += "<tr><td>" + player[i].id + "</td><td>" + player[i].first_name +
+                        "</td><td>" + player[i].middle_name + "</td><td>" + player[i].last_name +
+                        "</td><td>" + player[i].country + "</td><td>" + player[i].club +
+                        "</td><td> <input type='button' class='btn btn-warning btn-sm btn-edit' value='Edit' data-sid=" + player[i].id +
+                        "> <input type='button' class='btn btn-danger btn-sm btn-del' value='Delete' data-sid=" + player[i].id +"></tr>";
+                    }
+                    $("#tbody").html(output);
+                    $("#playerid").val('');
+                    $("form")[0].reset();
+                }
+                if (data.status == "Failed"){
+                    console.log("Data Failed to Save")
+                    $("#playerid").val('');
+                    $("form")[0].reset();
+                }
+<!--                console.log(data.status);-->
+            },
+        });
+        console.log("sucessfull");
+    });
+
+    //To Delete Data
+    $("tbody").on('click','.btn-del',function(){
+        console.log("Delete Button Clicked");
+        let id =$(this).attr("data-sid");
+        let csrf=$("input[name=csrfmiddlewaretoken]").val();
+        console.log(id);
+        mydata={'playerid':id,'csrfmiddlewaretoken':csrf};
+        mythis=this
+        $.ajax({
+            url:"{% url 'delete' %}",
+            method: "POST",
+            data: mydata,
+            success: function(data){
+                //console.log(data);
+                if (data.status == 1){
+                    console.log("Data deleted sucessfully");
+                    $(mythis).closest("tr").fadeOut();
+                }
+                if (data.status == 0){
+                    console.log("Unable to delete data");
+                }
+            },
+        });
+    });
+
+    //To Edit Data
+    $("tbody").on('click','.btn-edit',function(){
+        let id = $(this).attr("data-sid");
+        let csrf=$("input[name=csrfmiddlewaretoken]").val();
+        mydata={'playerid':id,'csrfmiddlewaretoken':csrf}
+        mythis=this
+        console.log("Edit Button Clicked");
+        console.log(id)
+        $.ajax({
+            url:"{% url 'edit' %}",
+            method: "POST",
+            data: mydata,
+            success: function(data){
+                console.log(data);
+                $("#playerid").val(data.id);
+                $("#firstnameid").val(data.firstname);
+                $("#middlenameid").val(data.middlename);
+                $("#lastnameid").val(data.lastname);
+                $("#countryid").val(data.country);
+                $("#clubid").val(data.club);
+            },
+        });
+
+    })
+
+
+</script>
